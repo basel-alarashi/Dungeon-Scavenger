@@ -3,48 +3,63 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
+    [Header("Jump Settings")]
+    [SerializeField] private bool enableJumping = false;  // Toggle in Inspector
+    [SerializeField] private float jumpHeight = 1.5f;
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private float groundDistance = 0.2f;
+    [SerializeField] private LayerMask groundMask;
     [Header("Movement Settings")]
     [SerializeField] private float walkSpeed = 5f;
     [SerializeField] private float gravity = -9.81f;
-    
+
     [Header("Debug")]
     [SerializeField] private bool showDebugInfo = true;
-    
+
     private CharacterController controller;
     private Vector3 velocity;
-    
+
     void Start()
     {
         controller = GetComponent<CharacterController>();
-        
+
         // Professional: Log component initialization
         if (showDebugInfo)
             Debug.Log($"[PlayerController] Initialized on {gameObject.name}");
     }
-    
+
     void Update()
     {
         // Movement
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
-        
+
         Vector3 move = transform.right * x + transform.forward * z;
         controller.Move(move * walkSpeed * Time.deltaTime);
-        
+
         // Gravity
         if (controller.isGrounded && velocity.y < 0)
             velocity.y = -2f;
-            
+
         velocity.y += gravity * Time.deltaTime;
+        if (enableJumping && Input.GetButtonDown("Jump") && controller.isGrounded)
+        {
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+        }
         controller.Move(velocity * Time.deltaTime);
-        
+
         // Debug visualization
         if (showDebugInfo && move.magnitude > 0.1f)
         {
             Debug.DrawRay(transform.position, move.normalized * 2f, Color.green);
         }
     }
-    
+
+    private bool IsGrounded()
+    {
+        return Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+    }
+
     // Professional: Public method to check if player is moving (useful for animations later)
     public bool IsMoving()
     {

@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3b06801c7afcb3c4998274dff2b8318d, type: 3}
-  m_Name: ItemData_TestCoin
+  m_Name: ItemData_Crystal_Mana
   m_EditorClassIdentifier: Assembly-CSharp::DungeonScavenger.Inventory.ItemData
-  itemName: Test Coin
-  description: A test pickup to ensure that player movement is working well.
+  itemName: Mana Crystal
+  description: Player's power unit
   icon: {fileID: 0}
   isStackable: 1
   maxStackSize: 99
   worldPrefab: {fileID: 0}
   pickupSound: {fileID: 0}
   dropSound: {fileID: 0}
-  itemColor: {r: 1, g: 1, b: 1, a: 1}
+  itemColor: {r: 0.26666668, g: 0.26666668, b: 1, a: 1}
   rarity: 0
