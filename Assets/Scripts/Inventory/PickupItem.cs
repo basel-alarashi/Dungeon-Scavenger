@@ -1,56 +1,69 @@
 using UnityEngine;
-using ItemData = DungeonScavenger.Inventory.ItemData;
-using PlayerInventory = DungeonScavenger.Inventory.PlayerInventory;
 
-[RequireComponent(typeof(Collider))]
-public class PickupItem : MonoBehaviour
+namespace DungeonScavenger.Inventory
 {
-    [SerializeField] private ItemData itemData;
-    [SerializeField] private bool destroyOnPickup = true;
-    [SerializeField] private AudioClip customPickupSound;
-
-    private void OnTriggerEnter(Collider other)
+    [RequireComponent(typeof(Collider))]
+    public class PickupItem : MonoBehaviour
     {
-        // Professional: Layer-based checking is faster than tag comparison
-        if (!other.CompareTag("Player")) return;
+        [Header("Item Data")]
+        [SerializeField] private ItemData itemData;
+        [SerializeField] private int quantity = 1;
         
-        PlayerInventory inventory = other.GetComponent<PlayerInventory>();
-        if (inventory != null)
+        [Header("Pickup Settings")]
+        [SerializeField] private bool destroyOnPickup = true;
+        [SerializeField] private AudioClip customPickupSound;
+        
+        [Header("Debug")]
+        [SerializeField] private bool logPickup = true;
+        
+        private void OnTriggerEnter(Collider other)
         {
-            bool wasPickedUp = inventory.AddItem(itemData);
+            // ✓ CHECK: Only player can pick up
+            if (!other.CompareTag("Player")) 
+                return;
+            
+            // ✓ CHECK: Get inventory component
+            PlayerInventory inventory = other.GetComponent<PlayerInventory>();
+            if (inventory == null)
+            {
+                Debug.LogError($"[PickupItem] Player has no PlayerInventory component!");
+                return;
+            }
+            
+            // ✓ CHECK: Attempt to add item
+            bool wasPickedUp = inventory.AddItem(itemData, quantity);
             
             if (wasPickedUp)
             {
-                Debug.Log($"[Pickup] Collected {itemData.itemName}. Inventory size: {inventory.items.Count}");
+                // ✓ CHECK: Debug log for testing
+                if (logPickup)
+                    Debug.Log($"[Pickup] Collected {quantity}x {itemData.itemName}");
                 
-                // Audio feedback (will work once AudioManager is set up)
-                if (customPickupSound != null)
-                {
-                    // AudioManager.Instance.PlaySFX(customPickupSound);
-                }
+                // TODO: Audio feedback (Phase 6)
                 
+                // ✓ CHECK: Destroy on pickup
                 if (destroyOnPickup)
                     Destroy(gameObject);
             }
             else
             {
-                Debug.Log($"[Pickup] Inventory full! Cannot collect {itemData.itemName}");
+                if (logPickup)
+                    Debug.Log($"[Pickup] Cannot collect {itemData.itemName} - Inventory full!");
             }
         }
-    }
-    
-    // Professional: Visual debugging in Scene view
-    private void OnDrawGizmos()
-    {
-        if (itemData != null)
+        
+        #if UNITY_EDITOR
+        private void OnDrawGizmos()
         {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, 1f);
-            
-            #if UNITY_EDITOR
-            UnityEditor.Handles.Label(transform.position + Vector3.up * 2, 
-                $"Pickup: {itemData.itemName}");
-            #endif
+            // Visual debugging in Scene view
+            if (itemData != null)
+            {
+                Gizmos.color = itemData.itemColor;
+                Gizmos.DrawWireSphere(transform.position, 1f);
+                UnityEditor.Handles.Label(transform.position + Vector3.up * 2, 
+                    $"Pickup: {itemData.itemName}");
+            }
         }
+        #endif
     }
 }
