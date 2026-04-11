@@ -42,6 +42,11 @@ namespace DungeonScavenger.UI
         [SerializeField] private bool showOnStart = false;
         [SerializeField] private bool lockCursorWhenOpen = true;
 
+        [Header("Usage Settings")]
+        [SerializeField] private KeyCode useKey = KeyCode.E;
+        [SerializeField] private Button useButton;
+        [SerializeField] private TextMeshProUGUI selectedItemText;
+
         [Header("Audio (Optional)")]
         [SerializeField] private AudioClip openSound;
         [SerializeField] private AudioClip closeSound;
@@ -116,6 +121,11 @@ namespace DungeonScavenger.UI
             if (Input.GetKeyDown(toggleKey))
             {
                 IsVisible = !IsVisible;
+            }
+
+            if (isVisible && selectedSlotIndex >= 0 && Input.GetKeyDown(useKey))
+            {
+                UseSelectedItem();
             }
 
             // Animate panel alpha
@@ -226,6 +236,74 @@ namespace DungeonScavenger.UI
         }
 
         /// <summary>
+        /// Uses the currently selected item.
+        /// </summary>
+        public void UseSelectedItem()
+        {
+            if (selectedSlotIndex < 0)
+            {
+                Debug.Log("[InventoryUI] No item selected to use!");
+                return;
+            }
+
+            if (playerInventory != null)
+            {
+                bool wasUsed = playerInventory.UseItem(selectedSlotIndex);
+
+                if (wasUsed)
+                {
+                    // Refresh display (the event will handle this, but we might need to update selection)
+                    if (selectedSlotIndex >= playerInventory.GetAllSlots().Count)
+                    {
+                        // Item was removed, deselect
+                        DeselectSlot();
+                    }
+
+                    UpdateSelectedItemText();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates the selected item description text.
+        /// </summary>
+        private void UpdateSelectedItemText()
+        {
+            if (selectedItemText == null) return;
+
+            if (selectedSlotIndex >= 0 && selectedSlotIndex < slotUIs.Count)
+            {
+                InventorySlot slot = slotUIs[selectedSlotIndex].SlotData;
+                if (slot != null && !slot.IsEmpty)
+                {
+                    string usageHint = GetUsageHint(slot.itemData);
+                    selectedItemText.text = $"{slot.itemData.itemName}\n{slot.itemData.description}\n{usageHint}";
+                }
+                else
+                {
+                    selectedItemText.text = "";
+                }
+            }
+            else
+            {
+                selectedItemText.text = "";
+            }
+        }
+
+        private string GetUsageHint(ItemData item)
+        {
+            switch (item.useType)
+            {
+                case ItemUseType.Consumable:
+                    return $"Press '{useKey}' to use (Restores {item.healthRestoreAmount} HP)";
+                case ItemUseType.Ammo:
+                    return $"Press '{useKey}' to add to ammo (+{item.ammoRestoreAmount})";
+                default:
+                    return "Cannot be used";
+            }
+        }
+
+        /// <summary>
         /// Selects a specific inventory slot.
         /// </summary>
         public void SelectSlot(int index)
@@ -242,6 +320,7 @@ namespace DungeonScavenger.UI
             if (selectedSlotIndex >= 0 && selectedSlotIndex < slotUIs.Count)
             {
                 slotUIs[selectedSlotIndex].SetSelected(true);
+                UpdateSelectedItemText();
 
                 // Log item info
                 InventorySlot slot = slotUIs[selectedSlotIndex].SlotData;
