@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ItemData_Coin
   m_EditorClassIdentifier: Assembly-CSharp::DungeonScavenger.Inventory.ItemData
   itemName: Gold Coin
-  description: Coin (Gold).
+  description: 
   icon: {fileID: 0}
   useType: 0
   isConsumable: 0
