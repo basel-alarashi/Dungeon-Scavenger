@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using DungeonScavenger.Player;
 
 namespace DungeonScavenger.Inventory
 {
@@ -87,6 +88,67 @@ namespace DungeonScavenger.Inventory
         #endregion
 
         #region Core Inventory Methods
+
+        // Add this method to PlayerInventory class
+
+        /// <summary>
+        /// Uses the item at the specified slot index.
+        /// </summary>
+        /// <param name="slotIndex">Index of the slot to use.</param>
+        /// <returns>True if the item was successfully used.</returns>
+        public bool UseItem(int slotIndex)
+        {
+            if (slotIndex < 0 || slotIndex >= items.Count)
+            {
+                Debug.LogWarning($"[PlayerInventory] Invalid slot index: {slotIndex}");
+                return false;
+            }
+
+            InventorySlot slot = items[slotIndex];
+            if (slot == null || slot.IsEmpty)
+            {
+                Debug.LogWarning($"[PlayerInventory] Slot {slotIndex} is empty!");
+                return false;
+            }
+
+            // Find player stats
+            PlayerStats stats = FindAnyObjectByType<PlayerStats>();
+            if (stats == null)
+            {
+                Debug.LogError("[PlayerInventory] No PlayerStats found in scene!");
+                return false;
+            }
+
+            // Attempt to use the item
+            bool wasUsed = slot.itemData.Use(stats);
+
+            if (wasUsed && slot.itemData.isConsumable)
+            {
+                // Reduce quantity or remove item
+                slot.quantity--;
+
+                if (slot.quantity <= 0)
+                {
+                    items.RemoveAt(slotIndex);
+                }
+
+                // Notify UI of changes
+                OnInventoryChanged?.Invoke();
+
+                if (logInventoryChanges)
+                    Debug.Log($"[PlayerInventory] Used {slot.itemData.itemName}. Remaining: {(slot.quantity > 0 ? slot.quantity.ToString() : "None")}");
+            }
+
+            return wasUsed;
+        }
+
+        /// <summary>
+        /// Uses the currently selected item (convenience method).
+        /// </summary>
+        public bool UseSelectedItem(int selectedSlotIndex)
+        {
+            return UseItem(selectedSlotIndex);
+        }
 
         /// <summary>
         /// Attempts to add an item to the inventory.

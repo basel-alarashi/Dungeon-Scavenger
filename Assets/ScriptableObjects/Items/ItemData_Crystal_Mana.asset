@@ -13,12 +13,16 @@ MonoBehaviour:
   m_Name: ItemData_Crystal_Mana
   m_EditorClassIdentifier: Assembly-CSharp::DungeonScavenger.Inventory.ItemData
   itemName: Mana Crystal
-  description: Player's power unit
+  description: Add 5 Ammo.
   icon: {fileID: 0}
+  useType: 2
+  isConsumable: 1
+  healthRestoreAmount: 0
+  ammoRestoreAmount: 5
   isStackable: 1
   maxStackSize: 99
   worldPrefab: {fileID: 0}
   pickupSound: {fileID: 0}
-  dropSound: {fileID: 0}
+  useSound: {fileID: 0}
   itemColor: {r: 0.26666668, g: 0.26666668, b: 1, a: 1}
   rarity: 0

@@ -13,12 +13,16 @@ MonoBehaviour:
   m_Name: ItemData_Potion_Health
   m_EditorClassIdentifier: Assembly-CSharp::DungeonScavenger.Inventory.ItemData
   itemName: Health Potion
-  description: Player's heart ot health or blood unit.
+  description: Restores 25 health points.
   icon: {fileID: 0}
+  useType: 1
+  isConsumable: 1
+  healthRestoreAmount: 25
+  ammoRestoreAmount: 0
   isStackable: 1
   maxStackSize: 99
   worldPrefab: {fileID: 0}
   pickupSound: {fileID: 0}
-  dropSound: {fileID: 0}
+  useSound: {fileID: 0}
   itemColor: {r: 1, g: 0.26666668, b: 0.26666668, a: 1}
   rarity: 0

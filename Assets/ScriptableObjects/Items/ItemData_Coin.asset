@@ -13,12 +13,16 @@ MonoBehaviour:
   m_Name: ItemData_Coin
   m_EditorClassIdentifier: Assembly-CSharp::DungeonScavenger.Inventory.ItemData
   itemName: Gold Coin
-  description: A test pickup to ensure that player movement is working well.
+  description: 
   icon: {fileID: 0}
+  useType: 0
+  isConsumable: 0
+  healthRestoreAmount: 0
+  ammoRestoreAmount: 0
   isStackable: 1
   maxStackSize: 99
   worldPrefab: {fileID: 0}
   pickupSound: {fileID: 0}
-  dropSound: {fileID: 0}
+  useSound: {fileID: 0}
   itemColor: {r: 1, g: 0.84313726, b: 0, a: 1}
   rarity: 0
