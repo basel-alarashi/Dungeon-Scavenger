@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using DungeonScavenger.Inventory;
+using DungeonScavenger.Core;
 using TMPro;
 
 namespace DungeonScavenger.UI
@@ -77,6 +78,12 @@ namespace DungeonScavenger.UI
                 isVisible = value;
                 inventoryPanel.SetActive(isVisible);
                 UpdateCursorState();
+
+                // PLAY UI SOUNDS
+                if (isVisible)
+                    AudioManager.Instance?.PlayInventoryOpen();
+                else
+                    AudioManager.Instance?.PlayInventoryClose();
 
                 if (backgroundDim != null)
                     backgroundDim.gameObject.SetActive(isVisible);
@@ -252,6 +259,16 @@ namespace DungeonScavenger.UI
 
                 if (wasUsed)
                 {
+                    // Play item-specific use sound
+                    if (selectedSlotIndex >= 0)
+                    {
+                        var slot = slotUIs[selectedSlotIndex].SlotData;
+                        if (slot?.itemData?.useSound != null)
+                        {
+                            AudioManager.Instance?.PlaySFX(slot.itemData.useSound);
+                        }
+                    }
+
                     // Refresh display (the event will handle this, but we might need to update selection)
                     if (selectedSlotIndex >= playerInventory.GetAllSlots().Count)
                     {

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using DungeonScavenger.Player;
+using DungeonScavenger.Core;
 
 namespace DungeonScavenger.Inventory
 {
@@ -189,8 +190,16 @@ namespace DungeonScavenger.Inventory
                 quantity = remainingQuantity;
             }
 
+            bool wasAdded = AddNewSlots(itemToAdd, quantity);
+
+            if (wasAdded)
+            {
+                // Play pickup sound (already handled in PickupItem, but here for direct adds)
+                AudioManager.Instance?.PlayPickupSound();
+            }
+
             // Create new slots for remaining items (or all items if not stackable)
-            return AddNewSlots(itemToAdd, quantity);
+            return wasAdded;
         }
 
         /// <summary>

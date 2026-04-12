@@ -1,4 +1,5 @@
 using UnityEngine;
+using DungeonScavenger.Core;
 
 namespace DungeonScavenger.Inventory
 {
@@ -8,20 +9,20 @@ namespace DungeonScavenger.Inventory
         [Header("Item Data")]
         [SerializeField] private ItemData itemData;
         [SerializeField] private int quantity = 1;
-        
+
         [Header("Pickup Settings")]
         [SerializeField] private bool destroyOnPickup = true;
         [SerializeField] private AudioClip customPickupSound;
-        
+
         [Header("Debug")]
         [SerializeField] private bool logPickup = true;
-        
+
         private void OnTriggerEnter(Collider other)
         {
             // ✓ CHECK: Only player can pick up
-            if (!other.CompareTag("Player")) 
+            if (!other.CompareTag("Player"))
                 return;
-            
+
             // ✓ CHECK: Get inventory component
             PlayerInventory inventory = other.GetComponent<PlayerInventory>();
             if (inventory == null)
@@ -29,18 +30,25 @@ namespace DungeonScavenger.Inventory
                 Debug.LogError($"[PickupItem] Player has no PlayerInventory component!");
                 return;
             }
-            
+
             // ✓ CHECK: Attempt to add item
             bool wasPickedUp = inventory.AddItem(itemData, quantity);
-            
+
             if (wasPickedUp)
             {
                 // ✓ CHECK: Debug log for testing
                 if (logPickup)
                     Debug.Log($"[Pickup] Collected {quantity}x {itemData.itemName}");
-                
-                // TODO: Audio feedback (Phase 6)
-                
+
+                if (itemData.pickupSound != null)
+                {
+                    AudioManager.Instance?.PlaySFX(itemData.pickupSound);
+                }
+                else
+                {
+                    AudioManager.Instance?.PlayPickupSound(); // Fallback
+                }
+
                 // ✓ CHECK: Destroy on pickup
                 if (destroyOnPickup)
                     Destroy(gameObject);
@@ -51,8 +59,8 @@ namespace DungeonScavenger.Inventory
                     Debug.Log($"[Pickup] Cannot collect {itemData.itemName} - Inventory full!");
             }
         }
-        
-        #if UNITY_EDITOR
+
+#if UNITY_EDITOR
         private void OnDrawGizmos()
         {
             // Visual debugging in Scene view
@@ -60,10 +68,10 @@ namespace DungeonScavenger.Inventory
             {
                 Gizmos.color = itemData.itemColor;
                 Gizmos.DrawWireSphere(transform.position, 1f);
-                UnityEditor.Handles.Label(transform.position + Vector3.up * 2, 
+                UnityEditor.Handles.Label(transform.position + Vector3.up * 2,
                     $"Pickup: {itemData.itemName}");
             }
         }
-        #endif
+#endif
     }
 }
