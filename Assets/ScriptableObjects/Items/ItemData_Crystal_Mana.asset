@@ -13,9 +13,7 @@ MonoBehaviour:
   m_Name: ItemData_Crystal_Mana
   m_EditorClassIdentifier: Assembly-CSharp::DungeonScavenger.Inventory.ItemData
   itemName: Mana Crystal
-  description: 'Player''s power unit.
-
-    Adds 5 ammo to reserves.'
+  description: Adds 5 ammo to reserves.
   icon: {fileID: 0}
   useType: 2
   isConsumable: 1

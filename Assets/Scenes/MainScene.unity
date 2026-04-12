@@ -1098,7 +1098,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: New Text
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1125,15 +1125,15 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 20
-  m_fontSizeBase: 20
+  m_fontSize: 16
+  m_fontSizeBase: 16
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 5
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 512
+  m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -2106,6 +2106,7 @@ GameObject:
   - component: {fileID: 665260165}
   - component: {fileID: 665260169}
   - component: {fileID: 665260168}
+  - component: {fileID: 665260170}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -2258,6 +2259,27 @@ MonoBehaviour:
   minZ: -18
   maxZ: 18
   showDebugInfo: 1
+--- !u!114 &665260170
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 665260163}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1102ff190d8aec34098ddc9c8d0ac840, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DungeonScavenger.Player.PlayerStats
+  maxHealth: 100
+  currentHealth: 0
+  regenerateHealth: 0
+  healthRegenRate: 1
+  healthRegenAmount: 1
+  maxAmmo: 30
+  currentAmmo: 15
+  infiniteAmmo: 0
+  logStatChanges: 1
 --- !u!1001 &713550885
 PrefabInstance:
   m_ObjectHideFlags: 0
