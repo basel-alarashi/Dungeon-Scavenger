@@ -53,6 +53,10 @@ namespace DungeonScavenger.Core
         [SerializeField] private AudioClip defaultInventoryOpen;
         [SerializeField] private AudioClip defaultInventoryClose;
 
+        [Header("Background Music")]
+        [SerializeField] private AudioClip backgroundMusic;
+        [SerializeField] private bool playMusicOnStart = true;
+
         [Header("Debug")]
         [SerializeField] private bool logAudioPlayback = false;
 
@@ -62,6 +66,8 @@ namespace DungeonScavenger.Core
 
         private List<AudioSource> sfxSourcePool = new List<AudioSource>();
         private int currentPoolIndex = 0;
+        private bool globalMute = true;
+        private float unmuteDelay = 1f;
 
         // Volume PlayerPrefs keys
         private const string MASTER_VOLUME_KEY = "MasterVolume";
@@ -72,6 +78,22 @@ namespace DungeonScavenger.Core
         #endregion
 
         #region Initialization
+
+        private void Start()
+        {
+            Invoke(nameof(UnmuteAudio), unmuteDelay);
+
+            if (playMusicOnStart && backgroundMusic != null)
+            {
+                PlayMusic(backgroundMusic, 2f);
+            }
+        }
+
+        private void UnmuteAudio()
+        {
+            globalMute = false;
+            Debug.Log("[AudioManager] Global unmute");
+        }
 
         private void InitializeAudioManager()
         {
@@ -190,6 +212,12 @@ namespace DungeonScavenger.Core
         /// </summary>
         public void PlayUISound(AudioClip clip, float volume = 1f)
         {
+            if (globalMute)
+            {
+                Debug.Log($"[AudioManager] UI sound muted during startup: {clip?.name}");
+                return;
+            }
+
             if (clip == null || uiSource == null) return;
 
             uiSource.PlayOneShot(clip, volume);
@@ -365,6 +393,7 @@ namespace DungeonScavenger.Core
         /// </summary>
         public void PlayInventoryOpen()
         {
+            if (globalMute) return;
             PlayUISound(defaultInventoryOpen);
         }
 
@@ -373,6 +402,7 @@ namespace DungeonScavenger.Core
         /// </summary>
         public void PlayInventoryClose()
         {
+            if (globalMute) return;
             PlayUISound(defaultInventoryClose);
         }
 

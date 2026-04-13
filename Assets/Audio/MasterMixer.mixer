@@ -81,7 +81,15 @@ AudioMixerController:
   m_SuspendThreshold: -80
   m_EnableSuspend: 1
   m_UpdateMode: 0
-  m_ExposedParameters: []
+  m_ExposedParameters:
+  - guid: 453f4e08962da69489053818371ce934
+    name: MasterVolume
+  - guid: a1db46b9a71fe40448dcf4e4a86a2e3c
+    name: MusicVolume
+  - guid: 789069851f989c743911a81a14972bf4
+    name: SFXVolume
+  - guid: 87c60f108be992a48b49f34181c3876c
+    name: UIVolume
   m_AudioMixerGroupViews:
   - guids:
     - e32d79f72e575a140b99a9a9481bdb02
@@ -153,10 +161,39 @@ AudioMixerGroupController:
   m_Send: 00000000000000000000000000000000
   m_Effects:
   - {fileID: 6256266909537945866}
+  - {fileID: 1054318883643574783}
   m_UserColorIndex: 0
   m_Mute: 0
   m_Solo: 0
   m_BypassEffects: 0
+--- !u!244 &1054318883643574783
+AudioMixerEffectController:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_EffectID: ae5b29afb3c3f314e9cb3c5f9b7ef5c7
+  m_EffectName: Duck Volume
+  m_MixLevel: 0416e357ddc727f45a1e302607ab7499
+  m_Parameters:
+  - m_ParameterName: Threshold
+    m_GUID: 59568e3e41ea6b14b82004131328e36d
+  - m_ParameterName: Ratio
+    m_GUID: 7ef90f1503bddd2489cba8b7487d5157
+  - m_ParameterName: Attack Time
+    m_GUID: a70d7568726a7ee4e9918987c1dd37ca
+  - m_ParameterName: Release Time
+    m_GUID: d720d9b1eb1ea33499961a5085e0b98b
+  - m_ParameterName: Make-up Gain
+    m_GUID: 12886f503b1ca0d43ae593b75a321f0a
+  - m_ParameterName: Knee
+    m_GUID: 40466fb603b3276479a85f2b033287b1
+  - m_ParameterName: Sidechain Mix
+    m_GUID: c0be0876f97a5fc40acd1862c29d5217
+  m_SendTarget: {fileID: 0}
+  m_EnableWetMix: 0
+  m_Bypass: 0
 --- !u!244 &6256266909537945866
 AudioMixerEffectController:
   m_ObjectHideFlags: 3
