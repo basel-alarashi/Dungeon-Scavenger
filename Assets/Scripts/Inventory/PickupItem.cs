@@ -7,7 +7,7 @@ namespace DungeonScavenger.Inventory
     public class PickupItem : MonoBehaviour
     {
         [Header("Item Data")]
-        [SerializeField] private ItemData itemData;
+        [SerializeField] public ItemData itemData;
         [SerializeField] private int quantity = 1;
 
         [Header("Pickup Settings")]
