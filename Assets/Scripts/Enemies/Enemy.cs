@@ -98,15 +98,21 @@ namespace DungeonScavenger.Enemy
 
         private void Update()
         {
-            if (enemyData == null || playerTarget == null || IsDead) return;
+            if (enemyData == null || playerTarget == null) return;
 
-            // Update detection
+            // If dead, ONLY update the death state, nothing else
+            if (IsDead)
+            {
+                if (currentState != null)
+                {
+                    currentState.Update(this);
+                }
+                return;
+            }
+
+            // Normal AI updates (only when alive)
             UpdateDetection();
-
-            // Update current state
             currentState?.Update(this);
-
-            // Update animator parameters
             UpdateAnimator();
         }
 

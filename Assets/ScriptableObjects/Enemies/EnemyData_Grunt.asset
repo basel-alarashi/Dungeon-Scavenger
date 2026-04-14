@@ -36,7 +36,15 @@ MonoBehaviour:
   deathEffectPrefab: {fileID: 0}
   lootTable:
   - itemData: {fileID: 11400000, guid: cf7319ec51f1c1e4393c1f8abf8d6156, type: 2}
-    dropChance: 100
+    dropChance: 40
     minQuantity: 1
     maxQuantity: 3
+  - itemData: {fileID: 11400000, guid: 3fb926a1366bda8418c0e8e6496d6c5a, type: 2}
+    dropChance: 30
+    minQuantity: 1
+    maxQuantity: 1
+  - itemData: {fileID: 11400000, guid: 025f54efe5caaa54a836d5538efbbad9, type: 2}
+    dropChance: 30
+    minQuantity: 1
+    maxQuantity: 2
   experienceReward: 10
