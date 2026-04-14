@@ -283,30 +283,59 @@ namespace DungeonScavenger.Enemy
 
         private void DropLoot()
         {
+            Debug.Log($"[Enemy] DropLoot called. Loot table count: {enemyData.lootTable?.Count ?? 0}");
+
+            if (enemyData.lootTable == null || enemyData.lootTable.Count == 0)
+            {
+                Debug.LogWarning($"[Enemy] No loot table configured for {enemyData.enemyName}!");
+                return;
+            }
+
             ItemData lootItem = enemyData.GetRandomLoot();
-            if (lootItem == null) return;
+            if (lootItem == null)
+            {
+                Debug.Log($"[Enemy] No loot dropped (random chance missed)");
+                return;
+            }
+
+            Debug.Log($"[Enemy] Selected loot item: {lootItem.itemName}");
 
             // Find the drop from loot table to get quantity
             LootDrop drop = enemyData.lootTable.Find(d => d.itemData == lootItem);
             int quantity = drop != null ? drop.GetRandomQuantity() : 1;
 
+            Debug.Log($"[Enemy] Dropping {quantity}x {lootItem.itemName}");
+
             // Spawn the item in world
             if (lootItem.worldPrefab != null)
             {
-                GameObject lootObject = Instantiate(lootItem.worldPrefab,
-                    transform.position + Vector3.up * 0.5f,
-                    Quaternion.identity);
+                Vector3 spawnPosition = transform.position + Vector3.up * 0.5f;
+                GameObject lootObject = Instantiate(lootItem.worldPrefab, spawnPosition, Quaternion.identity);
+
+                Debug.Log($"[Enemy] Spawned loot prefab: {lootObject.name} at {spawnPosition}");
 
                 // Configure the pickup
                 var pickup = lootObject.GetComponent<PickupItem>();
                 if (pickup == null)
+                {
                     pickup = lootObject.AddComponent<PickupItem>();
+                    Debug.Log("[Enemy] Added PickupItem component to loot");
+                }
 
-                // Use reflection or public method to set item data
+                // Set item data
                 pickup.itemData = lootItem;
-            }
 
-            Debug.Log($"[Enemy] Dropped {quantity}x {lootItem.itemName}");
+                // Ensure collider is trigger
+                Collider col = lootObject.GetComponent<Collider>();
+                if (col != null)
+                {
+                    col.isTrigger = true;
+                }
+            }
+            else
+            {
+                Debug.LogError($"[Enemy] worldPrefab is null for {lootItem.itemName}! Cannot spawn loot!");
+            }
         }
 
         #endregion

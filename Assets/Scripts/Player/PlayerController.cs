@@ -33,6 +33,11 @@ namespace DungeonScavenger.Player
         [SerializeField] private float minZ = -18f;
         [SerializeField] private float maxZ = 18f;
 
+        [Header("Combat")]
+        [SerializeField] private float attackRange = 3f;
+        [SerializeField] private float attackDamage = 25f;
+        [SerializeField] private KeyCode attackKey = KeyCode.Mouse0;
+
         [Header("Debug")]
         [SerializeField] private bool showDebugInfo = true;
 
@@ -70,6 +75,30 @@ namespace DungeonScavenger.Player
             HandleJump();
             ApplyGravity();
             ApplyBoundaries();
+
+            if (Input.GetKeyDown(attackKey))
+            {
+                Attack();
+            }
+        }
+
+        private void Attack()
+        {
+            RaycastHit hit;
+            Vector3 rayOrigin = transform.position + Vector3.up * 1f;
+
+            if (Physics.SphereCast(rayOrigin, 0.5f, transform.forward, out hit, attackRange))
+            {
+                Enemy.Enemy enemy = hit.transform.GetComponent<Enemy.Enemy>();
+                if (enemy != null)
+                {
+                    enemy.TakeDamage(attackDamage);
+                    Debug.Log($"[Player] Hit {enemy.enemyData.enemyName} for {attackDamage} damage!");
+                }
+            }
+
+            // Debug visualization
+            Debug.DrawRay(rayOrigin, transform.forward * attackRange, Color.red, 0.5f);
         }
 
         #endregion
