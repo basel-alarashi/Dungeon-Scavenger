@@ -22,7 +22,7 @@ MonoBehaviour:
   isStackable: 1
   maxStackSize: 99
   worldPrefab: {fileID: 8264032602503452035, guid: 4065b79778fbc80419199ce2ceff5b5c, type: 3}
-  pickupSound: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: 49d957c5902a54342841b6441bd17dd9, type: 3}
   useSound: {fileID: 0}
   itemColor: {r: 1, g: 0.26666668, b: 0.26666668, a: 1}
   rarity: 0
