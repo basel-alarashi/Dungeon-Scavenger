@@ -37,8 +37,8 @@ namespace DungeonScavenger.Player
         [SerializeField] private int maxHealth = 100;
         [SerializeField] private int currentHealth;
         [SerializeField] private bool regenerateHealth = false;
-        [SerializeField] private float healthRegenRate = 1f;
-        [SerializeField] private int healthRegenAmount = 1;
+        // [SerializeField] private float healthRegenRate = 1f;
+        // [SerializeField] private int healthRegenAmount = 1;
 
         #endregion
 
@@ -46,7 +46,7 @@ namespace DungeonScavenger.Player
 
         [Header("Ammo")]
         [SerializeField] private int maxAmmo = 30;
-        [SerializeField] private int currentAmmo;
+        [SerializeField] private int currentAmmo = 15;
         [SerializeField] private bool infiniteAmmo = false;
 
         #endregion
@@ -141,24 +141,9 @@ namespace DungeonScavenger.Player
 
         #region Ammo Methods
 
-        /// <summary>
-        /// Adds ammo to the player's reserves.
-        /// </summary>
-        public bool AddAmmo(int amount)
+        public bool HasAmmo(int amount = 1)
         {
-            if (amount <= 0) return false;
-            if (infiniteAmmo) return true;
-
-            int oldAmmo = currentAmmo;
-            currentAmmo = Mathf.Min(currentAmmo + amount, maxAmmo);
-            int addedAmount = currentAmmo - oldAmmo;
-
-            OnAmmoChanged?.Invoke(currentAmmo, maxAmmo);
-
-            if (logStatChanges)
-                Debug.Log($"[PlayerStats] Added {addedAmount} ammo. Ammo: {currentAmmo}/{maxAmmo}");
-
-            return addedAmount > 0;
+            return infiniteAmmo || currentAmmo >= amount;
         }
 
         /// <summary>
@@ -172,13 +157,23 @@ namespace DungeonScavenger.Player
             {
                 currentAmmo -= amount;
                 OnAmmoChanged?.Invoke(currentAmmo, maxAmmo);
+
+                Debug.Log($"[PlayerStats] Consumed {amount} ammo. Remaining: {currentAmmo}/{maxAmmo}");
                 return true;
             }
 
-            if (logStatChanges)
-                Debug.Log($"[PlayerStats] Not enough ammo! Have: {currentAmmo}, Need: {amount}");
-
+            Debug.Log($"[PlayerStats] Not enough ammo! Have: {currentAmmo}, Need: {amount}");
             return false;
+        }
+
+        /// <summary>
+        /// Adds ammo to the player's reserves.
+        /// </summary>
+        public void AddAmmo(int amount)
+        {
+            currentAmmo = Mathf.Min(currentAmmo + amount, maxAmmo);
+            OnAmmoChanged?.Invoke(currentAmmo, maxAmmo);
+            Debug.Log($"[PlayerStats] Added {amount} ammo. Total: {currentAmmo}/{maxAmmo}");
         }
 
         /// <summary>

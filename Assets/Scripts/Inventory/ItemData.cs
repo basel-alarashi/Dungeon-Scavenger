@@ -121,7 +121,8 @@ namespace DungeonScavenger.Inventory
                     return false;
                 }
 
-                return targetStats.AddAmmo(ammoRestoreAmount);
+                targetStats.AddAmmo(ammoRestoreAmount);
+                return true;
             }
 
             Debug.LogWarning($"[ItemData] {itemName} has no ammo restore value set!");
