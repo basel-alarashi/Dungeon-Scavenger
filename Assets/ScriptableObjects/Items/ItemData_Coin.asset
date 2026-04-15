@@ -21,8 +21,8 @@ MonoBehaviour:
   ammoRestoreAmount: 0
   isStackable: 1
   maxStackSize: 99
-  worldPrefab: {fileID: 0}
-  pickupSound: {fileID: 0}
+  worldPrefab: {fileID: 3339908590641925942, guid: 86516b19ea4e91d45a610bd4ec0bcaef, type: 3}
+  pickupSound: {fileID: 8300000, guid: 2005e4d8573f64b42b99de80652d3d83, type: 3}
   useSound: {fileID: 0}
   itemColor: {r: 1, g: 0.84313726, b: 0, a: 1}
   rarity: 0
