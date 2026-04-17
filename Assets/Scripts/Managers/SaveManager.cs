@@ -1,14 +1,14 @@
 using UnityEngine;
 using System;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
+using System.Collections.Generic;
 using DungeonScavenger.Player;
 using DungeonScavenger.Inventory;
 
 namespace DungeonScavenger.Core
 {
     /// <summary>
-    /// Handles saving and loading game data with multiple save slots.
+    /// Handles saving and loading game data using JSON serialization.
     /// </summary>
     public class SaveManager : MonoBehaviour
     {
@@ -22,6 +22,7 @@ namespace DungeonScavenger.Core
             {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
+                DeleteAllCorruptedSaveFiles();
             }
             else
             {
@@ -34,34 +35,22 @@ namespace DungeonScavenger.Core
         #region Constants
 
         private const string SAVE_FOLDER = "/Saves/";
-        private const string SAVE_EXTENSION = ".sav";
-        private const string SETTINGS_KEY = "GameSettings";
+        private const string SAVE_EXTENSION = ".json";
+        private const int CURRENT_SAVE_VERSION = 1;
 
         #endregion
 
         #region Inspector Fields
 
-        [Header("Save Settings")]
         [SerializeField] private int maxSaveSlots = 3;
-        [SerializeField] private bool autoSaveOnPickup = true;
-        [SerializeField] private bool autoSaveOnKill = true;
-        [SerializeField] private float autoSaveInterval = 60f; // seconds
-
-        [Header("Debug")]
         [SerializeField] private bool logSaveOperations = true;
 
         #endregion
 
-        #region Private Data
-
-        private float autoSaveTimer;
-
-        #endregion
-
-        #region Save/Load Game Data
+        #region Save/Load Methods
 
         /// <summary>
-        /// Saves the current game state to a slot.
+        /// Saves the current game state to a slot using JSON.
         /// </summary>
         public bool SaveGame(int slotIndex)
         {
@@ -70,26 +59,31 @@ namespace DungeonScavenger.Core
                 GameSaveData saveData = CreateSaveData();
                 string path = GetSavePath(slotIndex);
 
-                using (FileStream stream = new FileStream(path, FileMode.Create))
-                {
-                    BinaryFormatter formatter = new BinaryFormatter();
-                    formatter.Serialize(stream, saveData);
-                }
+                // Ensure directory exists
+                string directory = Path.GetDirectoryName(path);
+                if (!Directory.Exists(directory))
+                    Directory.CreateDirectory(directory);
+
+                // Convert to JSON
+                string json = JsonUtility.ToJson(saveData, true);
+
+                // Write to file
+                File.WriteAllText(path, json);
 
                 if (logSaveOperations)
-                    Debug.Log($"[SaveManager] Game saved to slot {slotIndex}");
+                    Debug.Log($"[SaveManager] Game saved to slot {slotIndex}. Health: {saveData.playerHealth}, Version: {saveData.saveVersion}");
 
                 return true;
             }
             catch (Exception e)
             {
-                Debug.LogError($"[SaveManager] Failed to save game: {e.Message}");
+                Debug.LogError($"[SaveManager] Failed to save game to slot {slotIndex}: {e.Message}");
                 return false;
             }
         }
 
         /// <summary>
-        /// Loads game data from a slot.
+        /// Loads game data from a slot using JSON.
         /// </summary>
         public bool LoadGame(int slotIndex)
         {
@@ -103,12 +97,22 @@ namespace DungeonScavenger.Core
 
             try
             {
-                GameSaveData saveData;
+                // Read JSON from file
+                string json = File.ReadAllText(path);
 
-                using (FileStream stream = new FileStream(path, FileMode.Open))
+                // Deserialize
+                GameSaveData saveData = JsonUtility.FromJson<GameSaveData>(json);
+
+                if (saveData == null)
                 {
-                    BinaryFormatter formatter = new BinaryFormatter();
-                    saveData = (GameSaveData)formatter.Deserialize(stream);
+                    Debug.LogError($"[SaveManager] Failed to deserialize save data from slot {slotIndex}");
+                    return false;
+                }
+
+                // Check version compatibility
+                if (saveData.saveVersion != CURRENT_SAVE_VERSION)
+                {
+                    Debug.LogWarning($"[SaveManager] Save file version mismatch. Expected {CURRENT_SAVE_VERSION}, got {saveData.saveVersion}.");
                 }
 
                 ApplySaveData(saveData);
@@ -120,7 +124,7 @@ namespace DungeonScavenger.Core
             }
             catch (Exception e)
             {
-                Debug.LogError($"[SaveManager] Failed to load game: {e.Message}");
+                Debug.LogError($"[SaveManager] Failed to load game from slot {slotIndex}: {e.Message}");
                 return false;
             }
         }
@@ -130,7 +134,8 @@ namespace DungeonScavenger.Core
         /// </summary>
         public bool SaveFileExists(int slotIndex)
         {
-            return File.Exists(GetSavePath(slotIndex));
+            string path = GetSavePath(slotIndex);
+            return File.Exists(path);
         }
 
         /// <summary>
@@ -142,19 +147,25 @@ namespace DungeonScavenger.Core
 
             if (File.Exists(path))
             {
-                File.Delete(path);
-
-                if (logSaveOperations)
-                    Debug.Log($"[SaveManager] Deleted save slot {slotIndex}");
-
-                return true;
+                try
+                {
+                    File.Delete(path);
+                    if (logSaveOperations)
+                        Debug.Log($"[SaveManager] Deleted save slot {slotIndex}");
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[SaveManager] Failed to delete save slot {slotIndex}: {e.Message}");
+                    return false;
+                }
             }
 
             return false;
         }
 
         /// <summary>
-        /// Gets metadata about a save file.
+        /// Gets metadata about a save file safely.
         /// </summary>
         public SaveMetadata GetSaveMetadata(int slotIndex)
         {
@@ -165,25 +176,64 @@ namespace DungeonScavenger.Core
 
             try
             {
-                using (FileStream stream = new FileStream(path, FileMode.Open))
-                {
-                    BinaryFormatter formatter = new BinaryFormatter();
-                    GameSaveData saveData = (GameSaveData)formatter.Deserialize(stream);
+                string json = File.ReadAllText(path);
+                GameSaveData saveData = JsonUtility.FromJson<GameSaveData>(json);
 
-                    return new SaveMetadata
-                    {
-                        slotIndex = slotIndex,
-                        saveTime = saveData.saveTime,
-                        playerHealth = saveData.playerHealth,
-                        playerAmmo = saveData.playerAmmo,
-                        itemCount = saveData.inventoryItems.Length,
-                        playTime = saveData.playTime
-                    };
-                }
+                if (saveData == null)
+                    return null;
+
+                return new SaveMetadata
+                {
+                    slotIndex = slotIndex,
+                    saveTime = saveData.saveTime,
+                    playerHealth = saveData.playerHealth,
+                    playerMaxHealth = saveData.playerMaxHealth,
+                    playerAmmo = saveData.playerAmmo,
+                    itemCount = saveData.inventoryItemNames != null ? saveData.inventoryItemNames.Length : 0,
+                    playTime = saveData.playTime,
+                    saveVersion = saveData.saveVersion
+                };
             }
-            catch
+            catch (Exception e)
             {
+                Debug.LogWarning($"[SaveManager] Could not read save file in slot {slotIndex}: {e.Message}");
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Deletes all save files.
+        /// </summary>
+        public void DeleteAllSaves()
+        {
+            for (int i = 0; i < maxSaveSlots; i++)
+            {
+                DeleteSave(i);
+            }
+            Debug.Log("[SaveManager] All save files deleted");
+        }
+
+        /// <summary>
+        /// Deletes corrupted save files on startup.
+        /// </summary>
+        private void DeleteAllCorruptedSaveFiles()
+        {
+            for (int i = 0; i < maxSaveSlots; i++)
+            {
+                string path = GetSavePath(i);
+                if (File.Exists(path))
+                {
+                    try
+                    {
+                        string json = File.ReadAllText(path);
+                        JsonUtility.FromJson<GameSaveData>(json);
+                    }
+                    catch
+                    {
+                        File.Delete(path);
+                        Debug.LogWarning($"[SaveManager] Deleted corrupted save file in slot {i}");
+                    }
+                }
             }
         }
 
@@ -195,14 +245,17 @@ namespace DungeonScavenger.Core
         {
             GameSaveData data = new GameSaveData();
 
-            // Find player
+            // Set version
+            data.saveVersion = CURRENT_SAVE_VERSION;
+
             GameObject player = GameObject.FindGameObjectWithTag("Player");
             if (player != null)
             {
-                data.playerPosition = player.transform.position;
-                data.playerRotation = player.transform.rotation;
+                // Position - store as serializable vectors
+                data.playerPosition = new SerializableVector3(player.transform.position);
+                data.playerRotation = new SerializableVector3(player.transform.eulerAngles);
 
-                // Player stats
+                // Stats
                 PlayerStats stats = player.GetComponent<PlayerStats>();
                 if (stats != null)
                 {
@@ -216,13 +269,24 @@ namespace DungeonScavenger.Core
                 PlayerInventory inventory = player.GetComponent<PlayerInventory>();
                 if (inventory != null)
                 {
-                    data.inventoryItems = SerializeInventory(inventory);
+                    var slots = inventory.GetAllSlots();
+                    data.inventoryItemNames = new string[slots.Count];
+                    data.inventoryQuantities = new int[slots.Count];
+
+                    for (int i = 0; i < slots.Count; i++)
+                    {
+                        if (slots[i].itemData != null)
+                        {
+                            data.inventoryItemNames[i] = slots[i].itemData.itemName;
+                            data.inventoryQuantities[i] = slots[i].quantity;
+                        }
+                    }
                 }
             }
 
             // Meta data
             data.saveTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            data.playTime = Time.time;
+            data.playTime = Time.timeSinceLevelLoad;
             data.sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
 
             return data;
@@ -231,120 +295,92 @@ namespace DungeonScavenger.Core
         private void ApplySaveData(GameSaveData data)
         {
             GameObject player = GameObject.FindGameObjectWithTag("Player");
-            if (player == null) return;
+            if (player == null)
+            {
+                Debug.LogError("[SaveManager] Cannot apply save data: Player not found!");
+                return;
+            }
 
             // Position
+            Vector3 position = data.playerPosition.ToVector3();
+            Vector3 rotation = data.playerRotation.ToVector3();
+
             CharacterController cc = player.GetComponent<CharacterController>();
             if (cc != null)
             {
                 cc.enabled = false;
-                player.transform.position = data.playerPosition;
-                player.transform.rotation = data.playerRotation;
+                player.transform.position = position;
+                player.transform.eulerAngles = rotation;
                 cc.enabled = true;
             }
+            else
+            {
+                player.transform.position = position;
+                player.transform.eulerAngles = rotation;
+            }
 
-            // Stats
+            // Stats - Force set using public methods
             PlayerStats stats = player.GetComponent<PlayerStats>();
             if (stats != null)
             {
-                // Use reflection or add public methods to set health/ammo
-                stats.Heal(data.playerHealth - stats.CurrentHealth);
-                stats.AddAmmo(data.playerAmmo - stats.CurrentAmmo);
+                stats.ResetStats();
+
+                int healthDiff = data.playerHealth - stats.CurrentHealth;
+                if (healthDiff > 0)
+                    stats.Heal(healthDiff);
+
+                int ammoDiff = data.playerAmmo - stats.CurrentAmmo;
+                if (ammoDiff > 0)
+                    stats.AddAmmo(ammoDiff);
             }
 
             // Inventory
             PlayerInventory inventory = player.GetComponent<PlayerInventory>();
-            if (inventory != null)
+            if (inventory != null && data.inventoryItemNames != null)
             {
-                DeserializeInventory(inventory, data.inventoryItems);
-            }
-        }
+                inventory.ClearInventory();
 
-        private InventoryItemData[] SerializeInventory(PlayerInventory inventory)
-        {
-            var slots = inventory.GetAllSlots();
-            InventoryItemData[] items = new InventoryItemData[slots.Count];
-
-            for (int i = 0; i < slots.Count; i++)
-            {
-                items[i] = new InventoryItemData
+                for (int i = 0; i < data.inventoryItemNames.Length; i++)
                 {
-                    itemName = slots[i].itemData.itemName,
-                    quantity = slots[i].quantity
-                };
-            }
-
-            return items;
-        }
-
-        private void DeserializeInventory(PlayerInventory inventory, InventoryItemData[] items)
-        {
-            inventory.ClearInventory();
-
-            foreach (var itemData in items)
-            {
-                // Find ItemData by name (you'll need a way to look up ItemData assets)
-                ItemData item = Resources.Load<ItemData>($"Items/{itemData.itemName}");
-                if (item != null)
-                {
-                    inventory.AddItem(item, itemData.quantity);
+                    if (!string.IsNullOrEmpty(data.inventoryItemNames[i]))
+                    {
+                        ItemData item = FindItemDataByName(data.inventoryItemNames[i]);
+                        if (item != null)
+                        {
+                            inventory.AddItem(item, data.inventoryQuantities[i]);
+                        }
+                    }
                 }
             }
+
+            Debug.Log($"[SaveManager] Save data applied. Health: {data.playerHealth}, Position: {position}");
         }
 
-        #endregion
-
-        #region Settings Save/Load
-
-        public void SaveSettings(GameSettingsData settings)
+        private ItemData FindItemDataByName(string itemName)
         {
-            string json = JsonUtility.ToJson(settings);
-            PlayerPrefs.SetString(SETTINGS_KEY, json);
-            PlayerPrefs.Save();
+            // Try loading from Resources first
+            ItemData[] allItems = Resources.LoadAll<ItemData>("ScriptableObjects/Items");
 
-            if (logSaveOperations)
-                Debug.Log("[SaveManager] Settings saved");
-        }
-
-        public GameSettingsData LoadSettings()
-        {
-            if (PlayerPrefs.HasKey(SETTINGS_KEY))
+            foreach (var item in allItems)
             {
-                string json = PlayerPrefs.GetString(SETTINGS_KEY);
-                return JsonUtility.FromJson<GameSettingsData>(json);
+                if (item.itemName == itemName)
+                    return item;
             }
 
-            return new GameSettingsData(); // Default settings
-        }
-
-        #endregion
-
-        #region Auto-Save
-
-        private void Update()
-        {
-            if (!GameManager.Instance.IsPlaying) return;
-
-            autoSaveTimer += Time.deltaTime;
-
-            if (autoSaveTimer >= autoSaveInterval)
+            // Fallback: Search all ItemData in project (Editor only)
+#if UNITY_EDITOR
+            string[] guids = UnityEditor.AssetDatabase.FindAssets("t:ItemData");
+            foreach (string guid in guids)
             {
-                autoSaveTimer = 0f;
-                SaveGame(0); // Auto-save to slot 0
-
-                if (logSaveOperations)
-                    Debug.Log("[SaveManager] Auto-saved game");
+                string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                ItemData item = UnityEditor.AssetDatabase.LoadAssetAtPath<ItemData>(path);
+                if (item != null && item.itemName == itemName)
+                    return item;
             }
-        }
+#endif
 
-        public void TriggerAutoSave(string reason)
-        {
-            if (!autoSaveOnPickup && !autoSaveOnKill) return;
-
-            SaveGame(0);
-
-            if (logSaveOperations)
-                Debug.Log($"[SaveManager] Auto-saved: {reason}");
+            Debug.LogWarning($"[SaveManager] Could not find ItemData: {itemName}");
+            return null;
         }
 
         #endregion
@@ -353,12 +389,7 @@ namespace DungeonScavenger.Core
 
         private string GetSavePath(int slotIndex)
         {
-            string folder = Application.persistentDataPath + SAVE_FOLDER;
-
-            if (!Directory.Exists(folder))
-                Directory.CreateDirectory(folder);
-
-            return folder + "save_" + slotIndex + SAVE_EXTENSION;
+            return Application.persistentDataPath + SAVE_FOLDER + "save_" + slotIndex + SAVE_EXTENSION;
         }
 
         #endregion
@@ -366,19 +397,46 @@ namespace DungeonScavenger.Core
 
     #region Data Structures
 
+    /// <summary>
+    /// Serializable version of Vector3 for JSON serialization.
+    /// </summary>
+    [Serializable]
+    public class SerializableVector3
+    {
+        public float x;
+        public float y;
+        public float z;
+
+        public SerializableVector3(Vector3 vector)
+        {
+            x = vector.x;
+            y = vector.y;
+            z = vector.z;
+        }
+
+        public Vector3 ToVector3()
+        {
+            return new Vector3(x, y, z);
+        }
+    }
+
     [Serializable]
     public class GameSaveData
     {
-        // Player data
-        public Vector3 playerPosition;
-        public Quaternion playerRotation;
+        // Version control
+        public int saveVersion = 1;
+
+        // Player data (using serializable vectors)
+        public SerializableVector3 playerPosition;
+        public SerializableVector3 playerRotation;
         public int playerHealth;
         public int playerMaxHealth;
         public int playerAmmo;
         public int playerMaxAmmo;
 
         // Inventory
-        public InventoryItemData[] inventoryItems;
+        public string[] inventoryItemNames;
+        public int[] inventoryQuantities;
 
         // Meta
         public string saveTime;
@@ -387,45 +445,31 @@ namespace DungeonScavenger.Core
     }
 
     [Serializable]
-    public class InventoryItemData
-    {
-        public string itemName;
-        public int quantity;
-    }
-
-    [Serializable]
-    public class GameSettingsData
-    {
-        public float masterVolume = 0.8f;
-        public float sfxVolume = 0.8f;
-        public float musicVolume = 0.6f;
-        public int qualityLevel = 2;
-        public bool fullscreen = true;
-    }
-
     public class SaveMetadata
     {
         public int slotIndex;
         public string saveTime;
         public int playerHealth;
+        public int playerMaxHealth;
         public int playerAmmo;
         public int itemCount;
         public float playTime;
+        public int saveVersion;
 
         public string GetDisplayText()
         {
-            return $"Slot {slotIndex + 1}\n" +
-                   $"Time: {saveTime}\n" +
-                   $"Health: {playerHealth}\n" +
+            return $"Health: {playerHealth}/{playerMaxHealth}\n" +
+                   $"Ammo: {playerAmmo}\n" +
                    $"Items: {itemCount}\n" +
-                   $"Playtime: {FormatPlayTime(playTime)}";
+                   $"Time: {FormatPlayTime(playTime)}\n" +
+                   $"Saved: {saveTime}";
         }
 
         private string FormatPlayTime(float seconds)
         {
-            int hours = (int)(seconds / 3600);
-            int minutes = (int)((seconds % 3600) / 60);
-            return $"{hours:D2}:{minutes:D2}";
+            int minutes = (int)(seconds / 60);
+            int secs = (int)(seconds % 60);
+            return $"{minutes:D2}:{secs:D2}";
         }
     }
 

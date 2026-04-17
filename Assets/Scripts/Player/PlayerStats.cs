@@ -232,6 +232,22 @@ namespace DungeonScavenger.Player
             AddAmmo(5);
         }
 
+        /// <summary>
+        /// Resets player stats to default values (used when loading saves).
+        /// </summary>
+        public void ResetStats()
+        {
+            currentHealth = maxHealth;
+            currentAmmo = maxAmmo / 2;
+            // hasDied = false;
+
+            OnHealthChanged?.Invoke(currentHealth, maxHealth);
+            OnAmmoChanged?.Invoke(currentAmmo, maxAmmo);
+
+            if (logStatChanges)
+                Debug.Log($"[PlayerStats] Stats reset. Health: {currentHealth}/{maxHealth}, Ammo: {currentAmmo}/{maxAmmo}");
+        }
+
         #endregion
     }
 }

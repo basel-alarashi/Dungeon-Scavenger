@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using DungeonScavenger.Core;
+using System;
 
 namespace DungeonScavenger.UI
 {
@@ -82,10 +83,24 @@ namespace DungeonScavenger.UI
         /// </summary>
         public void RefreshSaveData()
         {
-            if (SaveManager.Instance == null) return;
+            if (SaveManager.Instance == null)
+            {
+                Debug.LogWarning("[SaveSlotUI] SaveManager instance not found!");
+                return;
+            }
 
-            metadata = SaveManager.Instance.GetSaveMetadata(slotIndex);
-            hasSaveData = metadata != null;
+            // Safely get metadata
+            try
+            {
+                metadata = SaveManager.Instance.GetSaveMetadata(slotIndex);
+                hasSaveData = metadata != null;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[SaveSlotUI] Failed to get metadata for slot {slotIndex}: {e.Message}");
+                hasSaveData = false;
+                metadata = null;
+            }
 
             UpdateDisplay();
         }

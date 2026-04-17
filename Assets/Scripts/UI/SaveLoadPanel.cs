@@ -30,7 +30,7 @@ namespace DungeonScavenger.UI
 
         [Header("Settings")]
         [SerializeField] private int maxSlots = 3;
-        [SerializeField] private bool showConfirmation = true;
+        // [SerializeField] private bool showConfirmation = true;
 
         #endregion
 
