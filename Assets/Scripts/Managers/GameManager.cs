@@ -49,7 +49,7 @@ namespace DungeonScavenger.Core
         public GameState CurrentState => currentState;
         public bool IsPlaying => currentState == GameState.Playing;
         public bool IsPaused => currentState == GameState.Paused;
-        public bool IsGameOver => currentState == GameState.GameOver;
+        // public bool IsGameOver => currentState == GameState.GameOver;
 
         #endregion
 
@@ -57,11 +57,11 @@ namespace DungeonScavenger.Core
 
         [Header("Scene Names")]
         [SerializeField] private string mainMenuScene = "MainMenu";
-        [SerializeField] private string gameScene = "MainScene";
+        // [SerializeField] private string gameScene = "MainScene"; 
 
         [Header("Death Settings")]
-        [SerializeField] private float gameOverDelay = 2f;
-        [SerializeField] private bool autoRespawn = false; // Changed to false - let player choose
+        // [SerializeField] private float gameOverDelay = 2f;
+        // [SerializeField] private bool autoRespawn = false; // Changed to false - let player choose
 
         [Header("Debug")]
         [SerializeField] private bool logStateChanges = true;
@@ -145,12 +145,49 @@ namespace DungeonScavenger.Core
             }
 
             isPlayerDead = true;
-            Debug.Log("[GameManager] Player died! Showing Game Over screen.");
+            Debug.Log("[GameManager] Player died! Pausing gameplay and showing Game Over screen.");
+
+            // CRITICAL: Pause the game
+            Time.timeScale = 0f;
+
+            // Disable player input
+            DisablePlayerInput();
 
             SetState(GameState.GameOver);
             OnPlayerDied?.Invoke();
+        }
 
-            // DO NOT auto-respawn - let player click Restart
+        private void DisablePlayerInput()
+        {
+            // Disable player controller
+            Player.PlayerController playerController = FindAnyObjectByType<Player.PlayerController>();
+            if (playerController != null)
+                playerController.enabled = false;
+
+            // Disable weapon controller
+            Player.WeaponController weaponController = FindAnyObjectByType<Player.WeaponController>();
+            if (weaponController != null)
+                weaponController.enabled = false;
+
+            // Disable mouse look
+            Player.MouseLook mouseLook = FindAnyObjectByType<Player.MouseLook>();
+            if (mouseLook != null)
+                mouseLook.enabled = false;
+        }
+
+        private void EnablePlayerInput()
+        {
+            Player.PlayerController playerController = FindAnyObjectByType<Player.PlayerController>();
+            if (playerController != null)
+                playerController.enabled = true;
+
+            Player.WeaponController weaponController = FindAnyObjectByType<Player.WeaponController>();
+            if (weaponController != null)
+                weaponController.enabled = true;
+
+            Player.MouseLook mouseLook = FindAnyObjectByType<Player.MouseLook>();
+            if (mouseLook != null)
+                mouseLook.enabled = true;
         }
 
         public void RestartGame()
@@ -160,9 +197,10 @@ namespace DungeonScavenger.Core
             isRespawning = true;
             Debug.Log("[GameManager] Restarting game...");
 
-            SetState(GameState.Loading);
+            // Reset time scale
+            Time.timeScale = 1f;
 
-            // Reload the scene
+            SetState(GameState.Loading);
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
 
@@ -184,7 +222,11 @@ namespace DungeonScavenger.Core
         public void ResumeGame()
         {
             if (currentState == GameState.Paused)
+            {
+                Time.timeScale = 1f;
+                EnablePlayerInput();
                 SetState(GameState.Playing);
+            }
         }
 
         public void TogglePause()

@@ -1,28 +1,31 @@
 // Assets/_Project/Scripts/Player/MouseLook.cs
 using UnityEngine;
 
-public class MouseLook : MonoBehaviour
+namespace DungeonScavenger.Player
 {
-    [Header("Sensitivity")]
-    [SerializeField] private float mouseSensitivity = 50f;
-    [SerializeField] private Transform playerBody;
-    
-    private float xRotation = 0f;
-    
-    void Start()
+    public class MouseLook : MonoBehaviour
     {
-        Cursor.lockState = CursorLockMode.Locked;
-    }
-    
-    void Update()
-    {
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
-        
-        xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
-        
-        transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-        playerBody.Rotate(Vector3.up * mouseX);
+        [Header("Sensitivity")]
+        [SerializeField] private float mouseSensitivity = 50f;
+        [SerializeField] private Transform playerBody;
+
+        private float xRotation = 0f;
+
+        void Start()
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+
+        void Update()
+        {
+            float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+            float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+
+            xRotation -= mouseY;
+            xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+
+            transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+            playerBody.Rotate(Vector3.up * mouseX);
+        }
     }
 }
