@@ -147,7 +147,7 @@ namespace DungeonScavenger.UI
 
         #region Mode Management
 
-        private void SetMode(bool saveMode)
+        public void SetMode(bool saveMode)
         {
             isSaveMode = saveMode;
 
@@ -161,10 +161,14 @@ namespace DungeonScavenger.UI
 
             // Update toggles without triggering events
             if (saveModeToggle != null)
+            {
                 saveModeToggle.SetIsOnWithoutNotify(isSaveMode);
+            }
 
             if (loadModeToggle != null)
+            {
                 loadModeToggle.SetIsOnWithoutNotify(!isSaveMode);
+            }
 
             // Update slots
             foreach (var slot in slotUIs)
@@ -172,17 +176,29 @@ namespace DungeonScavenger.UI
                 slot.SetMode(isSaveMode);
             }
 
+            DeselectAllSlots();
             UpdateConfirmButton();
+
+            Debug.Log($"[SaveLoadPanel] Mode set to: {(isSaveMode ? "SAVE" : "LOAD")}");
         }
 
+        // Fix toggle handlers
         private void OnSaveModeToggled(bool isOn)
         {
-            if (isOn) SetMode(true);
+            if (isOn)
+            {
+                SetMode(true);
+                Debug.Log("[SaveLoadPanel] Switched to SAVE mode");
+            }
         }
 
         private void OnLoadModeToggled(bool isOn)
         {
-            if (isOn) SetMode(false);
+            if (isOn)
+            {
+                SetMode(false);
+                Debug.Log("[SaveLoadPanel] Switched to LOAD mode");
+            }
         }
 
         #endregion
