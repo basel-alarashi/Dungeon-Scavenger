@@ -4,9 +4,6 @@ using System;
 
 namespace DungeonScavenger.Core
 {
-    /// <summary>
-    /// Manages overall game state, player death, pausing, and scene transitions.
-    /// </summary>
     public class GameManager : MonoBehaviour
     {
         #region Singleton
@@ -19,36 +16,40 @@ namespace DungeonScavenger.Core
             {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
-                Initialize();
             }
             else
             {
                 Destroy(gameObject);
+                return;
             }
         }
 
         #endregion
 
-        #region Game State Enum
+        #region Game State
 
         public enum GameState
         {
             Playing,
             Paused,
             GameOver,
-            Victory,
             Loading
         }
 
-        #endregion
-
-        #region Events
-
-        public event Action<GameState, GameState> OnGameStateChanged; // oldState, newState
+        public event Action<GameState, GameState> OnGameStateChanged;
         public event Action OnPlayerDied;
-        public event Action OnPlayerRespawned;
         public event Action OnGamePaused;
         public event Action OnGameResumed;
+
+        private GameState currentState = GameState.Playing;
+        private GameState previousState;
+        private bool isPlayerDead = false;  // PREVENTS MULTIPLE DEATH EVENTS
+        private bool isRespawning = false;   // PREVENTS RESPAWN LOOPS
+
+        public GameState CurrentState => currentState;
+        public bool IsPlaying => currentState == GameState.Playing;
+        public bool IsPaused => currentState == GameState.Paused;
+        public bool IsGameOver => currentState == GameState.GameOver;
 
         #endregion
 
@@ -58,48 +59,36 @@ namespace DungeonScavenger.Core
         [SerializeField] private string mainMenuScene = "MainMenu";
         [SerializeField] private string gameScene = "MainScene";
 
-        [Header("Player Settings")]
-        [SerializeField] private float respawnDelay = 3f;
-        [SerializeField] private bool autoRespawn = true;
+        [Header("Death Settings")]
+        [SerializeField] private float gameOverDelay = 2f;
+        [SerializeField] private bool autoRespawn = false; // Changed to false - let player choose
 
         [Header("Debug")]
         [SerializeField] private bool logStateChanges = true;
 
         #endregion
 
-        #region Private Data
-
-        private GameState currentState = GameState.Playing;
-        private GameState previousState;
-        private float timeScaleBeforePause = 1f;
-
-        #endregion
-
-        #region Properties
-
-        public GameState CurrentState => currentState;
-        public bool IsPlaying => currentState == GameState.Playing;
-        public bool IsPaused => currentState == GameState.Paused;
-        public bool IsGameOver => currentState == GameState.GameOver;
-        public bool IsVictory => currentState == GameState.Victory;
-
-        #endregion
-
         #region Initialization
-
-        private void Initialize()
-        {
-            Debug.Log("[GameManager] Initialized");
-        }
 
         private void Start()
         {
-            // Find player reference
+            // Reset death flags on scene load
+            isPlayerDead = false;
+            isRespawning = false;
+
+            // Find player and subscribe
             Player.PlayerStats playerStats = FindAnyObjectByType<Player.PlayerStats>();
             if (playerStats != null)
             {
                 playerStats.OnPlayerDied += HandlePlayerDeath;
+                Debug.Log("[GameManager] Subscribed to player death event");
             }
+            else
+            {
+                Debug.LogWarning("[GameManager] PlayerStats not found in scene!");
+            }
+
+            SetState(GameState.Playing);
         }
 
         #endregion
@@ -114,86 +103,72 @@ namespace DungeonScavenger.Core
             currentState = newState;
 
             if (logStateChanges)
-                Debug.Log($"[GameManager] State changed: {previousState} → {currentState}");
+                Debug.Log($"[GameManager] State: {previousState} → {currentState}");
 
-            // Handle state entry
             switch (currentState)
             {
                 case GameState.Playing:
-                    HandlePlayingState();
+                    Time.timeScale = 1f;
+                    Cursor.lockState = CursorLockMode.Locked;
+                    Cursor.visible = false;
+                    OnGameResumed?.Invoke();
                     break;
+
                 case GameState.Paused:
-                    HandlePausedState();
+                    Time.timeScale = 0f;
+                    Cursor.lockState = CursorLockMode.None;
+                    Cursor.visible = true;
+                    OnGamePaused?.Invoke();
                     break;
+
                 case GameState.GameOver:
-                    HandleGameOverState();
-                    break;
-                case GameState.Victory:
-                    HandleVictoryState();
+                    Time.timeScale = 1f;
+                    Cursor.lockState = CursorLockMode.None;
+                    Cursor.visible = true;
                     break;
             }
 
             OnGameStateChanged?.Invoke(previousState, currentState);
         }
 
-        private void HandlePlayingState()
-        {
-            Time.timeScale = 1f;
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-
-            OnGameResumed?.Invoke();
-        }
-
-        private void HandlePausedState()
-        {
-            timeScaleBeforePause = Time.timeScale;
-            Time.timeScale = 0f;
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-
-            OnGamePaused?.Invoke();
-        }
-
-        private void HandleGameOverState()
-        {
-            Time.timeScale = 1f;
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
-
-        private void HandleVictoryState()
-        {
-            Time.timeScale = 1f;
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
-
         #endregion
 
-        #region Player Death & Respawning
+        #region Player Death
 
         private void HandlePlayerDeath()
         {
-            Debug.Log("[GameManager] Player died!");
-            OnPlayerDied?.Invoke();
+            // CRITICAL: Prevent multiple death events
+            if (isPlayerDead || isRespawning)
+            {
+                Debug.LogWarning("[GameManager] Player death already processed, ignoring duplicate event");
+                return;
+            }
+
+            isPlayerDead = true;
+            Debug.Log("[GameManager] Player died! Showing Game Over screen.");
 
             SetState(GameState.GameOver);
+            OnPlayerDied?.Invoke();
 
-            if (autoRespawn)
-            {
-                Invoke(nameof(RespawnPlayer), respawnDelay);
-            }
+            // DO NOT auto-respawn - let player click Restart
+        }
+
+        public void RestartGame()
+        {
+            if (isRespawning) return;
+
+            isRespawning = true;
+            Debug.Log("[GameManager] Restarting game...");
+
+            SetState(GameState.Loading);
+
+            // Reload the scene
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
 
         public void RespawnPlayer()
         {
-            Debug.Log("[GameManager] Respawning player...");
-
-            // Reload the scene (simplest respawn method)
             RestartGame();
-
-            OnPlayerRespawned?.Invoke();
         }
 
         #endregion
@@ -203,17 +178,13 @@ namespace DungeonScavenger.Core
         public void PauseGame()
         {
             if (currentState == GameState.Playing)
-            {
                 SetState(GameState.Paused);
-            }
         }
 
         public void ResumeGame()
         {
             if (currentState == GameState.Paused)
-            {
                 SetState(GameState.Playing);
-            }
         }
 
         public void TogglePause()
@@ -228,22 +199,10 @@ namespace DungeonScavenger.Core
 
         #region Scene Management
 
-        public void RestartGame()
-        {
-            SetState(GameState.Loading);
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        }
-
         public void LoadMainMenu()
         {
-            SetState(GameState.Loading);
+            Time.timeScale = 1f;
             SceneManager.LoadScene(mainMenuScene);
-        }
-
-        public void LoadGameScene()
-        {
-            SetState(GameState.Loading);
-            SceneManager.LoadScene(gameScene);
         }
 
         public void QuitGame()
@@ -259,29 +218,29 @@ namespace DungeonScavenger.Core
 
         #endregion
 
-        #region Victory
-
-        public void TriggerVictory()
-        {
-            if (currentState == GameState.Playing)
-            {
-                SetState(GameState.Victory);
-            }
-        }
-
-        #endregion
-
         #region Update
 
         private void Update()
         {
-            // Toggle pause with Escape key
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 if (IsPlaying)
                     PauseGame();
                 else if (IsPaused)
                     ResumeGame();
+            }
+        }
+
+        #endregion
+
+        #region Cleanup
+
+        private void OnDestroy()
+        {
+            Player.PlayerStats playerStats = FindAnyObjectByType<Player.PlayerStats>();
+            if (playerStats != null)
+            {
+                playerStats.OnPlayerDied -= HandlePlayerDeath;
             }
         }
 

@@ -29,6 +29,8 @@ namespace DungeonScavenger.Player
         public event Action<int, int> OnAmmoChanged;     // current, max
         public event Action OnPlayerDied;
 
+        private bool hasDied = false;  // Prevent multiple death triggers
+
         #endregion
 
         #region Health Settings
@@ -104,7 +106,7 @@ namespace DungeonScavenger.Player
         /// </summary>
         public void TakeDamage(int amount)
         {
-            if (amount <= 0) return;
+            if (amount <= 0 || hasDied) return;
 
             currentHealth = Mathf.Max(currentHealth - amount, 0);
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
@@ -117,6 +119,7 @@ namespace DungeonScavenger.Player
 
             if (currentHealth <= 0)
             {
+                hasDied = true;
                 Die();
             }
         }
@@ -190,6 +193,8 @@ namespace DungeonScavenger.Player
 
         private void Die()
         {
+            if (hasDied && currentHealth > 0) hasDied = false; // Reset if revived
+
             if (logStatChanges)
                 Debug.Log("[PlayerStats] Player died!");
 
@@ -239,7 +244,7 @@ namespace DungeonScavenger.Player
         {
             currentHealth = maxHealth;
             currentAmmo = maxAmmo / 2;
-            // hasDied = false;
+            hasDied = false;
 
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
             OnAmmoChanged?.Invoke(currentAmmo, maxAmmo);
