@@ -49,7 +49,7 @@ namespace DungeonScavenger.Core
         public GameState CurrentState => currentState;
         public bool IsPlaying => currentState == GameState.Playing;
         public bool IsPaused => currentState == GameState.Paused;
-        // public bool IsGameOver => currentState == GameState.GameOver;
+        public bool IsGameOver => currentState == GameState.GameOver;
 
         #endregion
 
@@ -264,12 +264,20 @@ namespace DungeonScavenger.Core
 
         private void Update()
         {
+            // CRITICAL: Only handle ESC when not in GameOver state
             if (Input.GetKeyDown(KeyCode.Escape))
             {
+                Debug.Log($"[GameManager] ESC pressed. Current state: {currentState}");
+
                 if (IsPlaying)
+                {
                     PauseGame();
+                }
                 else if (IsPaused)
+                {
                     ResumeGame();
+                }
+                // Don't do anything if GameOver - ESC should not work then
             }
         }
 

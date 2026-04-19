@@ -301,6 +301,8 @@ namespace DungeonScavenger.Core
                 return;
             }
 
+            Debug.Log($"[SaveManager] Applying save data. Player found: {player.name}");
+
             // Position
             Vector3 position = data.playerPosition.ToVector3();
             Vector3 rotation = data.playerRotation.ToVector3();
@@ -319,7 +321,20 @@ namespace DungeonScavenger.Core
                 player.transform.eulerAngles = rotation;
             }
 
-            // Stats - Force set using public methods
+            // Re-enable player components
+            var playerController = player.GetComponent<Player.PlayerController>();
+            if (playerController != null)
+                playerController.enabled = true;
+
+            var weaponController = player.GetComponent<Player.WeaponController>();
+            if (weaponController != null)
+                weaponController.enabled = true;
+
+            var mouseLook = player.GetComponent<Player.MouseLook>();
+            if (mouseLook != null)
+                mouseLook.enabled = true;
+
+            // Stats
             PlayerStats stats = player.GetComponent<PlayerStats>();
             if (stats != null)
             {
@@ -353,7 +368,12 @@ namespace DungeonScavenger.Core
                 }
             }
 
-            Debug.Log($"[SaveManager] Save data applied. Health: {data.playerHealth}, Position: {position}");
+            // Ensure game is playing
+            Time.timeScale = 1f;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+
+            Debug.Log($"[SaveManager] Save data applied successfully. Health: {data.playerHealth}, Position: {position}");
         }
 
         private ItemData FindItemDataByName(string itemName)

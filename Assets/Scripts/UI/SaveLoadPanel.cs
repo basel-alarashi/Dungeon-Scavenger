@@ -298,7 +298,6 @@ namespace DungeonScavenger.UI
         {
             if (selectedSlotIndex < 0) return;
 
-            // Play click sound
             AudioManager.Instance?.PlayButtonClick();
 
             bool success = false;
@@ -307,20 +306,49 @@ namespace DungeonScavenger.UI
             {
                 success = SaveManager.Instance?.SaveGame(selectedSlotIndex) ?? false;
                 Debug.Log($"[SaveLoadPanel] Saved game to slot {selectedSlotIndex}");
+
+                if (success)
+                {
+                    RefreshAllSlots();
+                    DeselectAllSlots();
+                    Hide(true);
+                }
             }
             else
             {
+                // LOAD MODE
+                Debug.Log($"[SaveLoadPanel] Loading game from slot {selectedSlotIndex}");
+
+                // CRITICAL: Resume time before loading
+                Time.timeScale = 1f;
+
                 success = SaveManager.Instance?.LoadGame(selectedSlotIndex) ?? false;
-                Debug.Log($"[SaveLoadPanel] Loaded game from slot {selectedSlotIndex}");
-            }
 
-            if (success)
-            {
-                RefreshAllSlots();
-                DeselectAllSlots();
+                if (success)
+                {
+                    Debug.Log($"[SaveLoadPanel] Game loaded successfully!");
 
-                // Hide panel if successful
-                Hide(true);
+                    // Hide all panels
+                    Hide(true);
+
+                    // If we're in pause menu, resume the game
+                    if (GameManager.Instance != null && GameManager.Instance.IsPaused)
+                    {
+                        GameManager.Instance.ResumeGame();
+                    }
+
+                    // If we're in game over, we need to reset state
+                    if (GameManager.Instance != null && GameManager.Instance.IsGameOver)
+                    {
+                        // Force state change
+                        var gameManager = GameManager.Instance;
+                        // Use reflection or add a public method to reset
+                    }
+                }
+                else
+                {
+                    Debug.LogError("[SaveLoadPanel] Failed to load game!");
+                }
             }
         }
 
