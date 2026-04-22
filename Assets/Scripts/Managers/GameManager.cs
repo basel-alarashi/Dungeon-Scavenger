@@ -241,6 +241,37 @@ namespace DungeonScavenger.Core
 
         #region Scene Management
 
+        private void OnEnable()
+        {
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        private void OnDisable()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            Debug.Log("[GameManager] Scene loaded, re-subscribing to PlayerStats");
+
+            Player.PlayerStats playerStats = FindAnyObjectByType<Player.PlayerStats>();
+
+            if (playerStats != null)
+            {
+                playerStats.OnPlayerDied += HandlePlayerDeath;
+                Debug.Log("[GameManager] Re-subscribed to player death event");
+            }
+            else
+            {
+                Debug.LogError("[GameManager] PlayerStats not found after scene load!");
+            }
+
+            // Reset flags
+            isPlayerDead = false;
+            isRespawning = false;
+        }
+
         public void LoadMainMenu()
         {
             Time.timeScale = 1f;
