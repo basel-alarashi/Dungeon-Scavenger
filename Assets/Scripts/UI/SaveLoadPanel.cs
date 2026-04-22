@@ -47,16 +47,6 @@ namespace DungeonScavenger.UI
 
         private void Start()
         {
-            // Create slots
-            CreateSlots();
-
-            // Wire mode toggles
-            if (saveModeToggle != null)
-                saveModeToggle.onValueChanged.AddListener(OnSaveModeToggled);
-
-            if (loadModeToggle != null)
-                loadModeToggle.onValueChanged.AddListener(OnLoadModeToggled);
-
             // Wire buttons
             if (closeButton != null)
                 closeButton.onClick.AddListener(OnCloseClicked);
@@ -69,6 +59,12 @@ namespace DungeonScavenger.UI
 
             // Hide initially
             panelRoot.SetActive(false);
+        }
+
+        private void Awake()
+        {
+            // Create slots
+            CreateSlots();
         }
 
         #endregion
@@ -180,25 +176,6 @@ namespace DungeonScavenger.UI
             UpdateConfirmButton();
 
             Debug.Log($"[SaveLoadPanel] Mode set to: {(isSaveMode ? "SAVE" : "LOAD")}");
-        }
-
-        // Fix toggle handlers
-        private void OnSaveModeToggled(bool isOn)
-        {
-            if (isOn)
-            {
-                SetMode(true);
-                Debug.Log("[SaveLoadPanel] Switched to SAVE mode");
-            }
-        }
-
-        private void OnLoadModeToggled(bool isOn)
-        {
-            if (isOn)
-            {
-                SetMode(false);
-                Debug.Log("[SaveLoadPanel] Switched to LOAD mode");
-            }
         }
 
         #endregion

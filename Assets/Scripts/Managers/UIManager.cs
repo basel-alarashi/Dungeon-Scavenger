@@ -11,7 +11,6 @@ namespace DungeonScavenger.UI
         [SerializeField] private GameObject hudPanel;
         [SerializeField] private GameObject pausePanel;
         [SerializeField] private GameObject gameOverPanel;
-        [SerializeField] private GameObject saveLoadPanel;
 
         [Header("HUD Elements")]
         [SerializeField] private TextMeshProUGUI healthText;
@@ -51,7 +50,6 @@ namespace DungeonScavenger.UI
             hudPanel.SetActive(true);
             pausePanel.SetActive(false);
             gameOverPanel.SetActive(false);
-            saveLoadPanel.SetActive(false);
         }
 
         private void ShowPauseMenu()
@@ -59,7 +57,6 @@ namespace DungeonScavenger.UI
             hudPanel.SetActive(false);
             pausePanel.SetActive(true);
             gameOverPanel.SetActive(false);
-            saveLoadPanel.SetActive(false);
         }
 
         private void ShowGameOver()
@@ -67,7 +64,6 @@ namespace DungeonScavenger.UI
             hudPanel.SetActive(false);
             pausePanel.SetActive(false);
             gameOverPanel.SetActive(true);
-            saveLoadPanel.SetActive(false);
         }
 
         // Button handlers
