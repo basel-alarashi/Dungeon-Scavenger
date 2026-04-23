@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DungeonScavenger.Inventory.ItemData
   itemName: Mana Crystal
   description: Add 5 Ammo.
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 924f9677d47a06648b6ac65526b727ad, type: 3}
   useType: 2
   isConsumable: 1
   healthRestoreAmount: 0

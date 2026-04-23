@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DungeonScavenger.Inventory.ItemData
   itemName: Gold Coin
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 082ad74c7bb66a641acc8d796e3f4cbd, type: 3}
   useType: 0
   isConsumable: 0
   healthRestoreAmount: 0
