@@ -3175,6 +3175,66 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 989288566}
   m_CullTransparentMesh: 1
+--- !u!1 &1016118381
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1016118383}
+  - component: {fileID: 1016118382}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1016118382
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1016118381}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce8ff362178bda54ca97ff76e1e7083b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DungeonScavenger.Core.AudioManager
+  audioMixer: {fileID: 24100000, guid: bdf92797d95751a478bb26f5486f8b43, type: 2}
+  poolSize: 20
+  musicSource: {fileID: 0}
+  uiSource: {fileID: 0}
+  defaultMasterVolume: 0.8
+  defaultSFXVolume: 0.8
+  defaultMusicVolume: 0.6
+  defaultUIVolume: 0.9
+  defaultPickupSound: {fileID: 8300000, guid: 2005e4d8573f64b42b99de80652d3d83, type: 3}
+  defaultDamageSound: {fileID: 8300000, guid: 3e9dd8ff7fddf304b84f11853419afff, type: 3}
+  defaultButtonClick: {fileID: 8300000, guid: 92bae2fecd48d4747ac3f67c870d1993, type: 3}
+  defaultInventoryOpen: {fileID: 8300000, guid: 8ca68e9f3dc5d50459f87c5375a2d459, type: 3}
+  defaultInventoryClose: {fileID: 8300000, guid: 92bae2fecd48d4747ac3f67c870d1993, type: 3}
+  backgroundMusic: {fileID: 8300000, guid: 371e3f5f13c425d4b88c942de14ec801, type: 3}
+  playMusicOnStart: 1
+  logAudioPlayback: 0
+--- !u!4 &1016118383
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1016118381}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 27.13749, y: 8.19813, z: 1.75256}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1099669628
 GameObject:
   m_ObjectHideFlags: 0
@@ -6333,3 +6393,4 @@ SceneRoots:
   - {fileID: 203844589}
   - {fileID: 545977520}
   - {fileID: 1506107313}
+  - {fileID: 1016118383}

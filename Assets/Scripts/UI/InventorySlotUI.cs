@@ -80,6 +80,7 @@ namespace DungeonScavenger.UI
         /// </summary>
         public void UpdateDisplay()
         {
+            Debug.Log($"[InventorySlotUI] Slot {slotIndex} | HasData: {slotData != null} | ItemData: {slotData?.itemData} | Icon: {slotData?.itemData?.icon}");
             if (IsEmpty)
             {
                 // Empty slot

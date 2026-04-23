@@ -129,7 +129,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f424c00e3840b2469590275353c73a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DungeonScavenger.Inventory.PickupItem
-  itemData: {fileID: 0}
+  itemData: {fileID: 11400000, guid: cf7319ec51f1c1e4393c1f8abf8d6156, type: 2}
   quantity: 1
   destroyOnPickup: 1
   customPickupSound: {fileID: 0}
