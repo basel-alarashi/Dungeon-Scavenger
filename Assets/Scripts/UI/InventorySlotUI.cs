@@ -80,7 +80,7 @@ namespace DungeonScavenger.UI
         /// </summary>
         public void UpdateDisplay()
         {
-            Debug.Log($"[InventorySlotUI] Slot {slotIndex} | HasData: {slotData != null} | ItemData: {slotData?.itemData} | Icon: {slotData?.itemData?.icon}");
+            Debug.Log($"[InventorySlotUI - UpdateDisplay] Slot {slotIndex} | HasData: {slotData != null} | ItemData: {slotData?.itemData} | Icon: {slotData?.itemData?.icon}");
             if (IsEmpty)
             {
                 // Empty slot
@@ -103,15 +103,16 @@ namespace DungeonScavenger.UI
                 // Filled slot
                 if (itemIcon != null)
                 {
-                    itemIcon.sprite = slotData.itemData.icon;
-
                     // If icon exists, show it normally
                     if (slotData.itemData.icon != null)
                     {
-                        itemIcon.color = Color.white;
+                        Debug.Log("[InventorySlotUI - Icon] icon found, displaying item icon." + slotData.itemData.icon.name);
+                        itemIcon.enabled = true;
+                        itemIcon.sprite = slotData.itemData.icon;
                     }
                     else
                     {
+                        Debug.Log("[InventorySlotUI - Icon] No icon found for item, using fallback color." + slotData.itemData.itemName);
                         // Fallback: show colored square
                         itemIcon.color = slotData.itemData.itemColor;
                     }
