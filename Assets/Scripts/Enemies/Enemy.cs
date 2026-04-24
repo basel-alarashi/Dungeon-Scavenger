@@ -4,6 +4,7 @@ using System.Collections;
 using DungeonScavenger.Inventory;
 using DungeonScavenger.Player;
 using DungeonScavenger.Core;
+using DungeonScavenger.UI;
 
 namespace DungeonScavenger.Enemy
 {
@@ -285,6 +286,13 @@ namespace DungeonScavenger.Enemy
 
             // Transition to death state
             TransitionToState(DeathState);
+
+            GameOverPanelController gameOverPanel = FindFirstObjectByType<GameOverPanelController>();
+            if (gameOverPanel != null)
+            {
+                gameOverPanel.OnEnemyKilled();
+                Debug.Log("[Enemy] Notified GameOverPanel of enemy kill");
+            }
         }
 
         private void DropLoot()
